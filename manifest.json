@@ -1,6 +1,6 @@
 [
   {
-    "name": "Spicetify-Bridge-Updated",
+    "name": "Spicetify Bridge Updated",
     "description": "Allow API calls to Spotify",
     "preview": "extensions/SpotifyBridgeUpdated/screenshot.png",
     "main": "extensions/SpotifyBridgeUpdated/SpotifyBridgeAPI.js",
