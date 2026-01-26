@@ -4,7 +4,7 @@ const { Server } = require("socket.io");
 const http = require("http");
 const path = require("path");
 
-const AUTH = "higithub";
+const AUTH = "github";
 const WS_PORT = 9444;
 const HTTP_PORT = 4391;
 
