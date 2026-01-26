@@ -4,14 +4,14 @@
 I got the idea to make it after seeing a Marketplace Extension that didn't work but had a cool concept.
 I couldn't find the original, but it was called Spotify Bridge and was on GitHub.
 # Requirements
-[Spicetify](https://spicetify.app/) - Why wouldn't you have this?
-[NPM](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) - Optional for Bridge
+ [Spicetify](https://spicetify.app/) 
+ [NPM](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) - Optional for Bridge
 # Installation
-Windows PowerShell:
+ Windows PowerShell:
 ```
 iwr "https://raw.githubusercontent.com/error1256/SpotifyBridgeUpdated/main/SpotifyBridgeAPI.js" -OutFile "$env:APPDATA\spicetify\Extensions\SpotifyBridgeAPI.js"
 ```
-Mac/Linux PowerShell:
+ Mac/Linux PowerShell:
 ```
 curl -L "https://raw.githubusercontent.com/error1256/SpotifyBridgeUpdated/main/SpotifyBridgeAPI.js" -o ~/.config/spicetify/Extensions/SpotifyBridgeAPI.js
 ```
