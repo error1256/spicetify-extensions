@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Spicetify Playback API (Full Control + Fixed Cover)
+// @name         Spotify Bridge API Updated 
 // @description  Sends data + receives bridge commands (volume, seek, shuffle, etc.)
 // ==/UserScript==
 
@@ -26,7 +26,6 @@
       const p = Spicetify.Player;
       const item = p.data?.item?.metadata || {};
 
-      // Handle cover image in all Spotify formats
       let cover = item.image_xlarge_url || item.image_large_url || item.image_url || "";
       if (cover.startsWith("spotify:image:")) {
         const hash = cover.split(":").pop();
@@ -55,7 +54,6 @@
     }
   }, 1000);
 
-  // --- Receive commands from bridge ---
   socket.on("bridgeCommand", (data) => {
     const cmd = typeof data === "string" ? data : data.cmd;
     const val = data.level ?? data.seconds ?? null;
