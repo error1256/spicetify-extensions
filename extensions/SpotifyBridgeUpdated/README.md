@@ -9,11 +9,11 @@ I couldn't find the original, but it was called Spotify Bridge and was on GitHub
 # Installation
  Windows PowerShell:
 ```
-iwr "https://raw.github.com/error1256/spicetify-extensions/blob/main/extensions/SpotifyBridgeUpdated/SpotifyBridgeAPI.js" -OutFile "$env:APPDATA\spicetify\Extensions\SpotifyBridgeAPI.js"
+iwr "https://raw.github.com/error1256/spicetify-extensions/blob/main/extensions/SpotifyBridgeUpdated/SpotifyBridgeAPI.js" -OutFile "$env:APPDATA\spicetify\Extensions\SpotifyBridgeAPI.js"; spicetify config extensions SpotifyBridgeAPI.js; spicetify apply
 ```
  Mac/Linux PowerShell:
 ```
-curl -L "https://raw.github.com/error1256/spicetify-extensions/blob/main/extensions/SpotifyBridgeUpdated/SpotifyBridgeAPI.js" -o ~/.config/spicetify/Extensions/SpotifyBridgeAPI.js
+curl -L "https://raw.github.com/error1256/spicetify-extensions/blob/main/extensions/SpotifyBridgeUpdated/SpotifyBridgeAPI.js" -o ~/.config/spicetify/Extensions/SpotifyBridgeAPI.js; spicetify config extensions SpotifyBridgeAPI.js; spicetify apply
 ```
 # Use
 I provided a [Bridge File](https://raw.github.com/error1256/spicetify-extensions/blob/main/extensions/SpotifyBridgeUpdated/SpotifyBridge.js) that will run a [Local Web Server on port 4390](http://localhost:4390/).
