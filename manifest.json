@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Spicetify-Bridge-Updated",
+    "description": "Allow API calls to Spotify",
+    "preview": "extensions/SpotifyBridgeUpdated/screenshot.png",
+    "main": "extensions/SpotifyBridgeUpdated/SpotifyBridgeAPI.js",
+    "readme": "extensions/SpotifyBridgeUpdated/README.md",
+    "authors": [
+        { "name": "error1256", "url": "https://github.com/error1256" }
+    ],
+    "tags": ["utility", "api"]
+  }
+]
