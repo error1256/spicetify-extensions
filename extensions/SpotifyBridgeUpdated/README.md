@@ -1,5 +1,4 @@
 # SpotifyBridgeUpdated
-<img width="447" height="558" alt="Screenshot-2026-01-25-163516" src="https://github.com/user-attachments/assets/901b0e57-7376-45f2-b24b-a12a656d04fe" />
 ⚠️AI USED⚠️
 
 I got the idea to make it after seeing a Marketplace Extension that didn't work but had a cool concept.
