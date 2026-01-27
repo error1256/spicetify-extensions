@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link id="favicon" rel="icon" type="image/png">
+<title>Spotify Remote</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;          /* full viewport height */
+    margin: 0;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: #181818;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    max-width: 360px;
+    width: 90%;
+  }
+
+  img {
+    width: 220px;
+    height: 220px;
+    border-radius: 12px;
+    object-fit: cover;
+    margin-bottom: 10px;
+  }
+
+  h2, p {
+    margin: 5px;
+  }
+
+  button {
+    margin: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #1db954;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  button:hover {
+    background: #1ed760;
+  }
+
+  input[type=range] {
+    width: 90%;
+    margin: 10px;
+  }
+  #seekInput {
+    width: 60px;
+    text-align: right;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    padding: 4px 6px;
+    background: #222;
+    color: #fff;
+  }
+
+  #durationText {
+    font-size: 14px;
+    color: #aaa;
+    margin-left: 4px;
+  }
+  #toast {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translate(-50%, 40px);
+    background: #1db954;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-weight: 600;
+    opacity: 0;
+    font-size: 15px;
+    pointer-events: none;
+    z-index: 9999;
+    transition:
+      opacity 0.3s ease-out,
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  #toast-container {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 8px;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: #1db954;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: 15px;
+    opacity: 0;
+    transform: translateY(40px);
+    transition:
+      opacity 0.3s ease-out,
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    min-width: 160px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  .toast-icon {
+    margin-right: 8px;
+    font-size: 18px;
+    vertical-align: middle;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .hidden-text {
+  display: none;
+  }
+</style>
+</head>
+<div id="toast-container"></div>
+<body>
+<div class="card">
+  <img id="cover" src="" alt="cover">
+  <h2 id="song">Loading...</h2>
+  <p id="artist"></p>
+  <p class="hidden-text" id="album"></p>
+
+  <div>
+    <label for="seekInput">⏱</label>
+    <input type="text" id="seekInput" value="0:00" size="5" 
+           onfocus="pauseSeekUpdate()" onblur="resumeSeekUpdate()" 
+           onchange="seekToTime(this.value)">
+    <span id="durationText">/ 0:00</span>
+  </div>
+
+  <div>
+    <button onclick="sendCmd('previous')">⏮</button>
+    <button onclick="sendCmd('playpause')">⏯</button>
+    <button onclick="sendCmd('next')">⏭</button>
+  </div>
+
+  <div>
+    <button onclick="toggleShuffle()">🔀</button>
+    <button onclick="toggleRepeat()">🔁</button>
+  </div>
+
+  <div>
+    <button onclick="changeVolume('voldown')">🔉</button>
+    <button onclick="changeVolume('volup')">🔊</button>
+    <input type="range" id="vol" min="0" max="100" value="50" oninput="setVol(this.value)">
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+
+const AUTH = "github";
+const base = `http://${location.hostname}:4390`;
+const stUrl = `${base}/status?auth=${AUTH}`;
+
+let userAdjustingVol = false;
+let seekLocked = false;
+let lastDuration = 0;
+
+function showToast(message, type = "info") {
+  const config = {
+    playback: { color: "#3498db", icon: "▶️" },   // Play / Pause / Next / Previous
+    volume:   { color: "#1db954", icon: "🔊" },   // Volume changes
+    seek:     { color: "#f39c12", icon: "⏩" },   // Seek actions
+    mode:     { color: "#9b59b6", icon: "🎛️" },  // Shuffle / Repeat
+    error:    { color: "#e74c3c", icon: "❌" },   // Errors
+    info:     { color: "#1db954", icon: "ℹ️" }    // Generic
+  };
+
+  const { color, icon } = config[type] || config.info;
+
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.style.background = color;
+  toast.innerHTML = `<span class="toast-icon">${icon}</span> ${message}`;
+  container.appendChild(toast);
+
+  // Animate in
+  requestAnimationFrame(() => toast.classList.add("show"));
+
+  // Auto remove
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 2200);
+}
+
+
+
+
+function cmd(c){ fetch(`${base}/command/${c}?auth=${AUTH}`); }
+
+function sendCmd(cmd) {
+  fetch(`${base}/command/${cmd}?auth=${AUTH}`)
+    .then(r => r.json())
+    .then(d => showToast(`${d.value}`, "playback"))
+    .catch(() => showToast(`${cmd}: Failed`, "error"));
+}
+
+
+
+function setVol(v) {
+  userAdjustingVol = true;
+  fetch(`${base}/command/volume/${v}?auth=${AUTH}`)
+    .then(r => r.json())
+    .then(d => showToast(`Volume Set To ${d.value}%`, "volume"))
+    .catch(() => showToast("Volume: Failed", "error"))
+    .finally(() => setTimeout(() => (userAdjustingVol = false), 1500));
+}
+
+
+function changeVolume(direction) {
+  fetch(`${base}/command/${direction}?auth=${AUTH}`)
+    .then(r => r.json())
+    .then(d => showToast(`Volume: ${d.value}%`, "volume"))
+    .catch(() => showToast("Volume change failed", "error"));
+}
+
+function toggleShuffle() {
+  fetch(`${base}/command/shuffle?auth=${AUTH}`)
+    .then(r => r.json())
+    .then(d => showToast(`Shuffle: ${d.value}`, "mode"))
+    .catch(() => showToast("Shuffle: Failed", "error"));
+}
+
+function toggleRepeat() {
+  fetch(`${base}/command/repeatmode?auth=${AUTH}`)
+    .then(r => r.json())
+    .then(d => showToast(`Repeat: ${d.value}`, "mode"))
+    .catch(() => showToast("Repeat: Failed", "error"));
+}
+
+function togglePlay() {
+  fetch(`${base}/command/playpause?auth=${AUTH}`)
+    .then(r => r.json())
+    .then(d => showToast(`Playback: ${d.value}`, "playback"))
+    .catch(() => showToast("Playback: Failed", "error"));
+}
+
+
+// --- Convert seconds to mm:ss ---
+function fmtTime(s) {
+  if (isNaN(s)) return "0:00";
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60).toString().padStart(2, "0");
+  return `${m}:${sec}`;
+}
+
+// --- Convert mm:ss to seconds ---
+function parseTime(t) {
+  const parts = t.split(":").map(x => parseInt(x.trim()) || 0);
+  if (parts.length === 1) return parts[0];
+  return parts[0]*60 + parts[1];
+}
+
+// --- When user types new time ---
+function seekToTime(value) {
+  const seconds = parseTime(value);
+  if (isNaN(seconds) || seconds < 0) return;
+  seekLocked = true;
+  fetch(`${base}/command/seek/${seconds}?auth=${AUTH}`)
+    .then(r => r.json())
+    .then(d => showToast(`Seeked To ${fmtTime(d.value)}`, "seek"))
+    .catch(() => showToast("Seek: Failed", "error"))
+    .finally(() => setTimeout(() => (seekLocked = false), 1500));
+}
+
+
+
+function pauseSeekUpdate(){ seekLocked = true; }
+function resumeSeekUpdate(){ setTimeout(() => seekLocked = false, 1000); }
+
+async function update(){
+  try {
+    const r = await fetch(stUrl);
+    const d = await r.json();
+    lastDuration = d.duration || 0;
+
+    document.getElementById("song").textContent = d.title || "No Song";
+    document.getElementById("artist").textContent = d.artist || "";
+    document.getElementById("album").textContent = d.album || "";
+    document.getElementById("cover").src = d.cover || "";
+    if (d.cover) {
+      const favicon = document.getElementById("favicon");
+      const newIcon = d.cover + "?v=" + Date.now();
+
+      if (favicon.href !== newIcon) {
+        favicon.href = newIcon;
+      }
+    }
+
+
+
+
+    if (!userAdjustingVol) document.getElementById("vol").value = d.volume || 0;
+
+    // update time display
+    if (!seekLocked && d.duration) {
+      document.getElementById("seekInput").value = fmtTime(d.progress || 0);
+      document.getElementById("durationText").textContent = "/ " + fmtTime(d.duration);
+    }
+  } catch (e) {
+    document.getElementById("song").textContent = "Offline";
+  }
+}
+
+setInterval(update, 1000);
+</script>
+
+
+</body>
+</html>
